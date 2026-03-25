@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: fusion-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: fusion_api
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo-auth:
+    image: mongo:7
+    container_name: fusion-mongo-auth
+    restart: unless-stopped
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo_auth_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: fusion_auth
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: fusion-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redispassword}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-redispassword}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mongo_data:
+  mongo_auth_data:
+  redis_data:

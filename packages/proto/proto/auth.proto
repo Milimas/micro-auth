@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package auth;
+
+option java_package = "com.fusiond.auth";
+option java_outer_classname = "AuthProto";
+
+service AuthService {
+  // Validates a session ID and returns the associated user info
+  rpc ValidateSession(ValidateSessionRequest) returns (ValidateSessionResponse);
+
+  // Checks whether a user has permission to perform an action on a subject
+  rpc CheckPermission(CheckPermissionRequest) returns (CheckPermissionResponse);
+}
+
+message ValidateSessionRequest {
+  string session_id = 1;
+}
+
+message ValidateSessionResponse {
+  bool valid = 1;
+  string user_id = 2;
+  string role = 3;
+  string email = 4;
+}
+
+message CheckPermissionRequest {
+  string user_id = 1;
+  string role = 2;
+  string action = 3;
+  string subject = 4;
+  // resource_attributes: e.g. { "userId": "abc", "isPublic": "false" }
+  map<string, string> resource_attributes = 5;
+}
+
+message CheckPermissionResponse {
+  bool allowed = 1;
+}
