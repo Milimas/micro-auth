@@ -14,7 +14,8 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     credentials: 'include',
     headers: { 'Content-Type': 'application/json', ...(options?.headers ?? {}) },
   })
-  const body = await res.json() as Record<string, unknown>
+
+  const body = (await res.json()) as Record<string, unknown>
   if (!res.ok) {
     throw new Error((body['error'] as string | undefined) ?? `HTTP ${res.status}`)
   }
