@@ -15,9 +15,10 @@ export interface AuthServiceClient {
 /**
  * Creates a gRPC client for the AuthService.
  * @param address   e.g. "localhost:50051"
- * @param serviceToken  Shared HMAC-JWT for service-to-service auth
+ * @param getToken  Factory called per-request to produce the service token.
+ *                  Pass a function that signs a short-lived JWT for production.
  */
-export function createAuthClient(address: string, serviceToken: string): AuthServiceClient {
+export function createAuthClient(address: string, getToken: () => string): AuthServiceClient {
   const Client = getAuthServiceClient()
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
   const rawClient = new Client(address, grpc.credentials.createInsecure())
@@ -25,7 +26,7 @@ export function createAuthClient(address: string, serviceToken: string): AuthSer
   function callWithToken<Req, Res>(method: string, request: Req): Promise<Res> {
     return new Promise((resolve, reject) => {
       const metadata = new grpc.Metadata()
-      metadata.set('x-service-token', serviceToken)
+      metadata.set('x-service-token', getToken())
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       ;(rawClient as Record<string, (req: Req, meta: grpc.Metadata, cb: (err: grpc.ServiceError | null, res: Res) => void) => void>)[method]?.(

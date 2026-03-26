@@ -29,7 +29,7 @@ export class DbLayer {
     } else {
       await this.db.create({
         sid,
-        userId: userId ?? 'unknown',
+        userId: userId ?? '',
         data: sessionData as unknown as Record<string, unknown>,
         expiresAt,
       } as Omit<TSession, 'id' | 'createdAt' | 'updatedAt'>)

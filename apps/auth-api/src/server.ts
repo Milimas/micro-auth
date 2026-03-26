@@ -25,8 +25,25 @@ export async function createServer(config: Config): Promise<{ app: Application; 
     await mongoose.connect(config.MONGO_URI)
     logger.info('Connected to MongoDB (auth)')
 
-    const userSchema = new Schema({}, { strict: false })
-    const sessionSchema = new Schema({}, { strict: false })
+    const userSchema = new Schema({
+      email: { type: String, required: true, unique: true },
+      passwordHash: { type: String, required: true },
+      firstName: String,
+      lastName: String,
+      role: { type: String, enum: ['admin', 'editor', 'viewer'], required: true },
+      isActive: { type: Boolean, required: true },
+      createdAt: Date,
+      updatedAt: Date,
+      lastLoginAt: Date,
+    })
+    const sessionSchema = new Schema({
+      sid: { type: String, required: true, unique: true },
+      userId: String,
+      data: Schema.Types.Mixed,
+      expiresAt: Date,
+      createdAt: Date,
+      updatedAt: Date,
+    })
     userDb = new MongoDBAdapter<TUser>('users', userSchema)
     sessionDb = new MongoDBAdapter<TSession>('sessions', sessionSchema)
   } else {
@@ -76,7 +93,7 @@ export async function createServer(config: Config): Promise<{ app: Application; 
   )
 
   // Routes
-  app.use('/auth', createAuthRouter(userDb, logger))
+  app.use('/auth', createAuthRouter(userDb, logger, config.SESSION_COOKIE_NAME))
 
   // Health check
   app.get('/health', (_req, res) => {

@@ -44,7 +44,7 @@ export function createProfileRouter(db: IDatabase<TUserProfile>, logger: Logger)
    * PATCH /profile
    * Updates the user's profile variables (NOT secrets — separate secured endpoint).
    */
-  router.patch('/', requireAbility('update', 'UserProfile'), async (req, res) => {
+  router.patch('/', requireAbility('update', 'UserProfile', async (req) => ({ userId: req.user!.id })), async (req, res) => {
     const parsed = ZUpdateProfileBody.safeParse(req.body)
     if (!parsed.success) {
       res.status(400).json({ error: 'Validation failed', issues: parsed.error.flatten() })

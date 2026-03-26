@@ -26,7 +26,7 @@ export function createGraphsRouter(db: IDatabase<TGraph>, logger: Logger): Route
    * GET /graphs
    * Returns all graphs owned by the user (+ public graphs for editors/admins).
    */
-  router.get('/', requireAbility('read', 'Graph'), async (req, res) => {
+  router.get('/', requireAbility('read', 'Graph', async (req) => ({ userId: req.user!.id })), async (req, res) => {
     const user = req.user!
     let graphs: TGraph[]
 

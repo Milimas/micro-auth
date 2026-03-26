@@ -1,18 +1,20 @@
-import { AbilityBuilder, createMongoAbility, type MongoAbility, type MongoQuery } from '@casl/ability'
-import type { TUser } from '@fusion-d/types'
+import { AbilityBuilder, createMongoAbility, type MongoAbility } from '@casl/ability'
+import type { TUser, TGraph, TUserProfile, TSession } from '@fusion-d/types'
 
 export type AppAction = 'create' | 'read' | 'update' | 'delete' | 'manage'
-export type AppSubject = 'Graph' | 'User' | 'UserProfile' | 'Session' | 'all'
+export type AppSubject =
+  | 'Graph'
+  | 'User'
+  | 'UserProfile'
+  | 'Session'
+  | 'all'
+  | TGraph
+  | TUser
+  | TUserProfile
+  | TSession
 
 // Use Record<string, unknown> as the condition type so CASL accepts plain attribute objects
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type AppAbility = MongoAbility<[AppAction, AppSubject], MongoQuery<Record<string, any>>>
-
-type CanFn = (
-  action: AppAction | AppAction[],
-  subject: AppSubject,
-  conditions?: Record<string, unknown>,
-) => void
+export type AppAbility = MongoAbility<[AppAction, AppSubject]>
 
 /**
  * Defines CASL abilities for a user based on their role.
@@ -23,10 +25,8 @@ type CanFn = (
  */
 export function defineAbilityFor(user: TUser): AppAbility {
   const { can: _can, cannot: _cannot, build } = new AbilityBuilder<AppAbility>(createMongoAbility)
-
-  // Cast to avoid CASL's strict string-subject condition typing
-  const can = _can as unknown as CanFn
-  const cannot = _cannot as unknown as CanFn
+  const can = _can
+  const cannot = _cannot
 
   switch (user.role) {
     case 'admin':
@@ -35,10 +35,13 @@ export function defineAbilityFor(user: TUser): AppAbility {
 
     case 'editor':
       can('create', 'Graph')
-      can(['read', 'update', 'delete'] as unknown as AppAction, 'Graph', { userId: user.id })
+      can('read', 'Graph', { userId: user.id })
+      can('update', 'Graph', { userId: user.id })
+      can('delete', 'Graph', { userId: user.id })
       can('read', 'Graph', { isPublic: true })
       can('read', 'User', { id: user.id })
-      can(['read', 'update'] as unknown as AppAction, 'UserProfile', { userId: user.id })
+      can('read', 'UserProfile', { userId: user.id })
+      can('update', 'UserProfile', { userId: user.id })
       can('read', 'Session', { userId: user.id })
       cannot('delete', 'User')
       break

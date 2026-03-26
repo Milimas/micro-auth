@@ -11,8 +11,10 @@ services:
       - mongo_data:/data/db
     environment:
       MONGO_INITDB_DATABASE: fusion_api
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-changeme}
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: ["CMD", "mongosh", "-u", "${MONGO_ROOT_USERNAME:-admin}", "-p", "${MONGO_ROOT_PASSWORD:-changeme}", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -27,8 +29,10 @@ services:
       - mongo_auth_data:/data/db
     environment:
       MONGO_INITDB_DATABASE: fusion_auth
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-changeme}
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: ["CMD", "mongosh", "-u", "${MONGO_ROOT_USERNAME:-admin}", "-p", "${MONGO_ROOT_PASSWORD:-changeme}", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5

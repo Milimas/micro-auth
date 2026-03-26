@@ -25,8 +25,9 @@ export function createAuthMiddleware(authClient: AuthServiceClient, logger: Logg
       return
     }
 
-    // express-session signs cookies as "s:SID.HMAC" — strip the wrapper to get the raw session ID
-    const sid = rawSid.startsWith('s:') ? rawSid.slice(2).split('.')[0]! : rawSid
+    // express-session signs cookies as "s:SID.HMAC" — strip prefix and remove the trailing .HMAC
+    // Using last-dot split to correctly handle session IDs that contain dots
+    const sid = rawSid.startsWith('s:') ? rawSid.slice(2).replace(/\.[^.]*$/, '') : rawSid
 
     try {
       const result = await authClient.validateSession({ sessionId: sid })

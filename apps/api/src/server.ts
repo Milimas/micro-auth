@@ -27,8 +27,25 @@ export async function createServer(config: Config): Promise<{ app: Application; 
     await mongoose.connect(config.MONGO_URI)
     logger.info('Connected to MongoDB (api)')
 
-    const graphSchema = new Schema({}, { strict: false })
-    const profileSchema = new Schema({}, { strict: false })
+    const graphSchema = new Schema({
+      userId: { type: String, required: true },
+      name: { type: String, required: true },
+      isPublic: { type: Boolean, required: true },
+      variables: Schema.Types.Mixed,
+      secrets: Schema.Types.Mixed,
+      nodes: [Schema.Types.Mixed],
+      connections: [Schema.Types.Mixed],
+      status: { type: String, enum: ['in-progress', 'running', 'stopped', 'error', 'paused'], required: true },
+      createdAt: Date,
+      updatedAt: Date,
+    })
+    const profileSchema = new Schema({
+      userId: { type: String, required: true, unique: true },
+      variables: Schema.Types.Mixed,
+      secrets: Schema.Types.Mixed,
+      createdAt: Date,
+      updatedAt: Date,
+    })
     graphDb = new MongoDBAdapter<TGraph>('graphs', graphSchema)
     profileDb = new MongoDBAdapter<TUserProfile>('profiles', profileSchema)
   } else {

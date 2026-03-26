@@ -15,7 +15,16 @@ declare module 'express-session' {
   }
 }
 
-export function createAuthRouter(db: IDatabase<TUser>, logger: Logger): Router {
+// Computed once on module load — used as a timing decoy when a user account is not found.
+// verify() is used (instead of hash()) to better match the timing of the real auth path.
+const _dummyHashPromise = argon2.hash('dummy', {
+  type: argon2.argon2id,
+  memoryCost: 65536,
+  timeCost: 3,
+  parallelism: 4,
+})
+
+export function createAuthRouter(db: IDatabase<TUser>, logger: Logger, cookieName = 'sid'): Router {
   const router = Router()
 
   /**
@@ -86,8 +95,9 @@ export function createAuthRouter(db: IDatabase<TUser>, logger: Logger): Router {
 
     const user = await db.findOne({ email } as Parameters<typeof db.findOne>[0])
     if (!user || !user.isActive) {
-      // Constant-time response to prevent user enumeration
-      await argon2.hash('dummy-constant-time-work')
+      // Constant-time response — use verify() against a pre-computed hash to match
+      // the timing profile of the real argon2.verify path below
+      await argon2.verify(await _dummyHashPromise, password).catch(() => null)
       res.status(401).json({ error: 'Invalid credentials' })
       return
     }
@@ -128,7 +138,7 @@ export function createAuthRouter(db: IDatabase<TUser>, logger: Logger): Router {
         res.status(500).json({ error: 'Logout failed' })
         return
       }
-      res.clearCookie('sid')
+      res.clearCookie(cookieName)
       logger.info({ userId }, 'User logged out')
       res.status(200).json({ message: 'Logged out' })
     })
