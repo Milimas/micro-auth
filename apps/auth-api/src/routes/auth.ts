@@ -15,14 +15,7 @@ declare module 'express-session' {
   }
 }
 
-// Computed once on module load — used as a timing decoy when a user account is not found.
-// verify() is used (instead of hash()) to better match the timing of the real auth path.
-const _dummyHashPromise = argon2.hash('dummy', {
-  type: argon2.argon2id,
-  memoryCost: 65536,
-  timeCost: 3,
-  parallelism: 4,
-})
+const ARGON2_PARAMS = { type: argon2.argon2id, memoryCost: 65536, timeCost: 3, parallelism: 4 }
 
 export function createAuthRouter(db: IDatabase<TUser>, logger: Logger, cookieName = 'sid'): Router {
   const router = Router()
@@ -46,12 +39,7 @@ export function createAuthRouter(db: IDatabase<TUser>, logger: Logger, cookieNam
       return
     }
 
-    const passwordHash = await argon2.hash(password, {
-      type: argon2.argon2id,
-      memoryCost: 65536,
-      timeCost: 3,
-      parallelism: 4,
-    })
+    const passwordHash = await argon2.hash(password, ARGON2_PARAMS)
 
     const now = new Date()
     const user = await db.create({
@@ -95,9 +83,9 @@ export function createAuthRouter(db: IDatabase<TUser>, logger: Logger, cookieNam
 
     const user = await db.findOne({ email } as Parameters<typeof db.findOne>[0])
     if (!user || !user.isActive) {
-      // Constant-time response — use verify() against a pre-computed hash to match
-      // the timing profile of the real argon2.verify path below
-      await argon2.verify(await _dummyHashPromise, password).catch(() => null)
+      // Constant-time decoy — hash the submitted password with production params so
+      // timing matches the real argon2.hash + argon2.verify path for existing users
+      await argon2.hash(password, ARGON2_PARAMS).catch(() => null)
       res.status(401).json({ error: 'Invalid credentials' })
       return
     }

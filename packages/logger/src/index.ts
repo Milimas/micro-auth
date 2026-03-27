@@ -19,7 +19,7 @@ export function createLogger(service: string): Logger {
       },
     }),
     redact: {
-      paths: ['*.password', '*.passwordHash', '*.token', '*.secret', '*.cookie'],
+      paths: ['**.password', '**.passwordHash', '**.token', '**.secret', '**.cookie'],
       censor: '[REDACTED]',
     },
   })
