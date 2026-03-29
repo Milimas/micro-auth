@@ -2,11 +2,9 @@ import { useState, type FormEvent } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { login } from '../api.ts'
 import { getSafeRedirectUrl } from '../utils/redirect.ts'
-import { useRedirectIfAuthenticated } from '../hooks/useRedirectIfAuthenticated.ts'
 
 export default function Login() {
   const navigate = useNavigate()
-  const { isLoading: isCheckingAuth } = useRedirectIfAuthenticated()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -32,8 +30,6 @@ export default function Login() {
       setLoading(false)
     }
   }
-
-  if (isCheckingAuth) return <div aria-busy="true">Loading…</div>
 
   return (
     <main style={{ maxWidth: 400, margin: '80px auto', padding: '0 16px' }}>
