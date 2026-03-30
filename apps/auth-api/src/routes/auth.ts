@@ -171,4 +171,3 @@ export function createAuthRouter(db: IDatabase<TUser>, logger: Logger, cookieNam
 
   return router
 }
-

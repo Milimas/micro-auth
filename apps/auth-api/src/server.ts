@@ -13,7 +13,9 @@ import { Schema } from 'mongoose'
 import { mkdirSync } from 'node:fs'
 import { dirname } from 'node:path'
 
-export async function createServer(config: Config): Promise<{ app: Application; logger: ReturnType<typeof createLogger> }> {
+export async function createServer(
+  config: Config,
+): Promise<{ app: Application; logger: ReturnType<typeof createLogger> }> {
   const logger = createLogger('auth-api')
 
   // --- Database setup ---
@@ -26,6 +28,7 @@ export async function createServer(config: Config): Promise<{ app: Application; 
     logger.info('Connected to MongoDB (auth)')
 
     const userSchema = new Schema({
+      id: { type: String, required: true, unique: true },
       email: { type: String, required: true, unique: true },
       passwordHash: { type: String, required: true },
       firstName: String,
@@ -37,6 +40,7 @@ export async function createServer(config: Config): Promise<{ app: Application; 
       lastLoginAt: Date,
     })
     const sessionSchema = new Schema({
+      id: { type: String, required: true, unique: true },
       sid: { type: String, required: true, unique: true },
       userId: String,
       data: Schema.Types.Mixed,
@@ -49,7 +53,9 @@ export async function createServer(config: Config): Promise<{ app: Application; 
   } else {
     mkdirSync(dirname(config.LOWDB_PATH), { recursive: true })
     userDb = await LowDBAdapter.create<TUser>(config.LOWDB_PATH)
-    sessionDb = await LowDBAdapter.create<TSession>(config.LOWDB_PATH.replace('.json', '-sessions.json'))
+    sessionDb = await LowDBAdapter.create<TSession>(
+      config.LOWDB_PATH.replace('.json', '-sessions.json'),
+    )
     logger.info({ path: config.LOWDB_PATH }, 'Using LowDB (auth)')
   }
 
@@ -101,10 +107,12 @@ export async function createServer(config: Config): Promise<{ app: Application; 
   })
 
   // Global error handler
-  app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-    logger.error({ err }, 'Unhandled error')
-    res.status(500).json({ error: 'Internal server error' })
-  })
+  app.use(
+    (err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+      logger.error({ err }, 'Unhandled error')
+      res.status(500).json({ error: 'Internal server error' })
+    },
+  )
 
   // --- gRPC server ---
   const grpcServer = createGrpcServer(userDb, sessionDb, config.SERVICE_JWT_SECRET, logger)
