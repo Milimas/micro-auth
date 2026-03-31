@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from 'express'
+import { subject as caslSubject } from '@casl/ability'
 import { defineAbilityFor } from './ability.js'
 import type { AppAction, AppSubject } from './ability.js'
 import type { TUser } from '@fusion-d/types'
@@ -37,10 +38,7 @@ export function requireAbility(
 
     if (getResource) {
       const resource = await getResource(req)
-      const subject_instance = Object.assign(
-        Object.create({ __caslSubjectType__: subject }) as object,
-        resource,
-      ) as unknown as AppSubject
+      const subject_instance = caslSubject(subject as string, { ...resource }) as unknown as AppSubject
       if (!ability.can(action, subject_instance)) {
         res.status(403).json({ error: 'Forbidden' })
         return
