@@ -86,6 +86,12 @@ export function deleteGraph(id: string): Promise<void> {
   return request<void>(API_BASE, `/graphs/${id}`, { method: 'DELETE' })
 }
 
+export type GraphLifecycleAction = 'run' | 'stop' | 'pause' | 'resume' | 'publish' | 'import'
+
+export function graphAction(id: string, action: GraphLifecycleAction): Promise<{ graph: Graph }> {
+  return request<{ graph: Graph }>(API_BASE, `/graphs/${id}/${action}`, { method: 'POST' })
+}
+
 // Profile
 export function getProfile(): Promise<{ profile: UserProfile }> {
   return request<{ profile: UserProfile }>(API_BASE, '/profile')

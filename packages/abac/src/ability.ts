@@ -1,4 +1,9 @@
-import { AbilityBuilder, createMongoAbility, subject as caslSubject, type MongoAbility } from '@casl/ability'
+import {
+  AbilityBuilder,
+  createMongoAbility,
+  subject as caslSubject,
+  type MongoAbility,
+} from '@casl/ability'
 import type { TUser, TGraph, TUserProfile, TSession } from '@fusion-d/types'
 
 export type AppAction =
@@ -56,22 +61,22 @@ export function defineAbilityFor(user: TUser): AppAbility {
     case 'editor':
       // Graphs
       can('create', 'Graph')
-      can('read',   'Graph', { userId: user.id })
-      can('read',   'Graph', { isPublic: true })
+      can('read', 'Graph', { userId: user.id })
+      can('read', 'Graph', { isPublic: true })
       can('update', 'Graph', { userId: user.id })
       can('delete', 'Graph', { userId: user.id })
       // Lifecycle — own graphs only
-      can('run',    'Graph', { userId: user.id })
-      can('stop',   'Graph', { userId: user.id })
-      can('pause',  'Graph', { userId: user.id })
+      can('run', 'Graph', { userId: user.id })
+      can('stop', 'Graph', { userId: user.id })
+      can('pause', 'Graph', { userId: user.id })
       can('resume', 'Graph', { userId: user.id })
-      can('publish','Graph', { userId: user.id })
+      can('publish', 'Graph', { userId: user.id })
       // Import — published graphs only
       can('import', 'Graph', { isPublic: true })
       // Own profile & session
-      can('read',   'UserProfile', { userId: user.id })
+      can('read', 'UserProfile', { userId: user.id })
       can('update', 'UserProfile', { userId: user.id })
-      can('read',   'Session',     { userId: user.id })
+      can('read', 'Session', { userId: user.id })
       // Own user record
       can('read', 'User', { id: user.id })
       cannot('delete', 'User')
@@ -81,6 +86,7 @@ export function defineAbilityFor(user: TUser): AppAbility {
     default:
       // Unauthenticated: published graphs only
       can('read', 'Graph', { isPublic: true })
+      can('read', 'UserProfile', { userId: user.id })
       break
   }
 

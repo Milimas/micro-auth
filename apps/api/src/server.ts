@@ -15,7 +15,9 @@ import helmet from 'helmet'
 import cors from 'cors'
 import { rateLimit } from 'express-rate-limit'
 
-export async function createServer(config: Config): Promise<{ app: Application; logger: ReturnType<typeof createLogger> }> {
+export async function createServer(
+  config: Config,
+): Promise<{ app: Application; logger: ReturnType<typeof createLogger> }> {
   const logger = createLogger('api')
 
   // --- Database setup ---
@@ -28,6 +30,7 @@ export async function createServer(config: Config): Promise<{ app: Application; 
     logger.info('Connected to MongoDB (api)')
 
     const graphSchema = new Schema({
+      id: { type: String, required: true, unique: true },
       userId: { type: String, required: true },
       name: { type: String, required: true },
       isPublic: { type: Boolean, required: true },
@@ -35,11 +38,16 @@ export async function createServer(config: Config): Promise<{ app: Application; 
       secrets: Schema.Types.Mixed,
       nodes: [Schema.Types.Mixed],
       connections: [Schema.Types.Mixed],
-      status: { type: String, enum: ['in-progress', 'running', 'stopped', 'error', 'paused'], required: true },
+      status: {
+        type: String,
+        enum: ['in-progress', 'running', 'stopped', 'error', 'paused'],
+        required: true,
+      },
       createdAt: Date,
       updatedAt: Date,
     })
     const profileSchema = new Schema({
+      id: { type: String, required: true, unique: true },
       userId: { type: String, required: true, unique: true },
       variables: Schema.Types.Mixed,
       secrets: Schema.Types.Mixed,

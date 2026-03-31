@@ -11,7 +11,7 @@ export default function App() {
         {(user) => (
           <Routes>
             <Route path="/" element={<GraphList user={user} />} />
-            <Route path="/graphs/:id" element={<GraphDetail />} />
+            <Route path="/graphs/:id" element={<GraphDetail user={user} />} />
             <Route path="/profile" element={<Profile />} />
           </Routes>
         )}
